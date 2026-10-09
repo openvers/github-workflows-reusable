@@ -62,6 +62,10 @@ on:
         description: |
           AWS Service Account Client Secret for Authentication (when running locally)
         required: true
+      AWS_SESSION_TOKEN:
+        description: |
+          AWS Service Account Short Term Session Token (when running locally)
+        required: false
       AWS_REGION:
         description: |
           AWS Account Region
@@ -112,6 +116,7 @@ jobs:
       with:
         aws-access-key-id: ${{ !!inputs.ACT_MODE && secrets.AWS_CLIENT_ID || null }}
         aws-secret-access-key: ${{ !!inputs.ACT_MODE && secrets.AWS_CLIENT_SECRET || null }}
+        aws-session-token: ${{ !!inputs.ACT_MODE && secrets.AWS_SESSION_TOKEN || null }}
         aws-region: ${{ secrets.AWS_REGION }}
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         role-duration-seconds: ${{ inputs.token_lifetime }}
