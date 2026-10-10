@@ -50,15 +50,11 @@ on:
       AZURE_CLIENT_ID:
         description: |
           Azure Service Account Client ID for authentication
-        required: false
+        required: true
       AZURE_CLIENT_SECRET:
         description: |
           Azure Service Account Client Secret for Authentication (when running locally)
-        required: false
-      AZURE_CLIENT_ACCESS_TOKEN:
-        description: |
-          Azure Service Account short lived Access Token for authentication (Client ID and Client Secret should not be supplied simultaneously)
-        required: false
+        required: true
       AZURE_SUBSCRIPTION_ID:
         description: |
           Azure Subscription ID
@@ -80,10 +76,8 @@ permissions:
 #These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
     ARM_USE_OIDC: "${{ !!inputs.ACT_MODE  && 'false' || 'true' }}"
-    ARM_CLIENT_ID: "${{ !!secrets.AZURE_ACCESS_TOKEN && secrets.AZURE_CLIENT_ID || null }}"
-    ARM_CLIENT_SECRET: "${{ !!inputs.ACT_MODE && !!secrets.AZURE_ACCESS_TOKEN && secrets.AZURE_CLIENT_SECRET || null }}"
-    ARM_ACCESS_TOKEN: "${{ !!inputs.ACT_MODE && !!secrets.AZURE_CLIENT_ID && !!secrets.AZURE_CLIENT_SECRET && secrets.AZURE_CLIENT_ACCESS_TOKEN || null }}"
-    AZUREAD_ACCESS_TOKEN: "${{ !!inputs.ACT_MODE && !!secrets.AZURE_CLIENT_ID && !!secrets.AZURE_CLIENT_SECRET && secrets.AZURE_CLIENT_ACCESS_TOKEN || null }}"
+    ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+    ARM_CLIENT_SECRET: "${{ !!inputs.ACT_MODE && secrets.AZURE_CLIENT_SECRET || null }}"
     ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
     ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
 
