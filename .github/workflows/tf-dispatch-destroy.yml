@@ -32,7 +32,6 @@ on:
           Possible ENV Variables include
           secrets:
             env_variables:
-              TF_VAR_WIF_ID="$\{{ github.run_id}}-$\{{github.run_attempt}}"
               TF_VAR_GITHUB_REPOSITORY_OWNER="$\{{ github.repository_owner }}"
               TF_VAR_GITHUB_REPOSITORY="$\{{ github.repository }}"
               TF_VAR_GITHUB_REF="$\{{ github.ref }}"
@@ -47,6 +46,10 @@ on:
         description: |
           Google Cloud Project ID
         required: true
+      GOOGLE_WORKLOAD_IDENTITY_POOL_ID:
+        description: |
+          Existing Google Cloud Workload Identity Federation Pool ID
+        required: false
       GOOGLE_WORKLOAD_IDENTITY_PROVIDER:
         description: |
           Google Cloud Workload Identity Federation Provider Member ID
@@ -69,6 +72,7 @@ env:
   GOOGLE_PROJECT: "${{ secrets.GOOGLE_PROJECT }}"
   GOOGLE_OAUTH_ACCESS_TOKEN: "${{ secrets.GOOGLE_OAUTH_ACCESS_TOKEN }}"
   TF_VAR_IMPERSONATE_SERVICE_ACCOUNT_EMAIL: "${{ secrets.GOOGLE_IMPERSONATE_SERVICE_ACCOUNT_EMAIL }}"
+  TF_VAR_WORKLOAD_IDENTITY_POOL_ID: "${{ secrets.GOOGLE_WORKLOAD_IDENTITY_POOL_ID }}"
 
 jobs:
   reusable-dispatch-destroy:
