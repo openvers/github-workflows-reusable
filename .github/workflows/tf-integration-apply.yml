@@ -68,8 +68,19 @@ on:
         required: true
       AZURE_CLIENT_SECRET:
         description: |
-          Azure Service Account Client Secret for Authentication (when running locally)
-        required: true
+          Azure Service Account Client Secret for Authentication when running locally.
+          Takes precedence over certificate-based authentication when provided.
+        required: false
+      AZURE_CLIENT_CERTIFICATE_PATH:
+        description: |
+          Azure Service Account Client Certificate path for certificate-based authentication when running locally.
+          Used only when AZURE_CLIENT_SECRET is not provided.
+        required: false
+      AZURE_CLIENT_CERTIFICATE_PASSWORD:
+        description: |
+          Azure Service Account Client Certificate password for certificate-based authentication when running locally.
+          Used only when AZURE_CLIENT_SECRET is not provided.
+        required: false
       AZURE_SUBSCRIPTION_ID:
         description: |
           Azure Subscription ID
@@ -108,7 +119,9 @@ permissions:
 env:
     ARM_USE_OIDC: "${{ !!inputs.ACT_MODE  && 'false' || 'true' }}"
     ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
-    ARM_CLIENT_SECRET: "${{ !!inputs.ACT_MODE && secrets.AZURE_CLIENT_SECRET || null }}"
+    ARM_CLIENT_SECRET: "${{ !!inputs.ACT_MODE && secrets.AZURE_CLIENT_SECRET || '' }}"
+    ARM_CLIENT_CERTIFICATE_PATH: "${{ !!inputs.ACT_MODE && secrets.AZURE_CLIENT_SECRET == '' && secrets.AZURE_CLIENT_CERTIFICATE_PATH || '' }}"
+    ARM_CLIENT_CERTIFICATE_PASSWORD: "${{ !!inputs.ACT_MODE && secrets.AZURE_CLIENT_SECRET == '' && secrets.AZURE_CLIENT_CERTIFICATE_PASSWORD || '' }}"
     ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
     ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
     TF_VAR_DATABRICKS_ADMINISTRATOR: "${{ inputs.DATABRICKS_ADMINISTRATOR }}"
