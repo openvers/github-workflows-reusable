@@ -13,12 +13,6 @@ on:
           Databricks Accounts Administrator user account (not for machine access)
         required: true
         type: string
-      DATABRICKS_PROFILE:
-        description: |
-          Databricks CLI configuration profile name for Databricks Accounts configuration/credentials
-        required: false
-        type: string
-        default: AZURE_ACCOUNTS
       targets:
         description: |
           Specify Terraform resources/modules within the tf scripts to target with the -target command line.
@@ -90,13 +84,8 @@ on:
         description: |
           Azure Databricks Accounts Account ID
         required: true
-      AZURE_DATABRICKS_ACCOUNT_CLIENT_ID:
-        description: |
-          Azure Databricks Accounts Client ID with Admin Permissions
-        required: true
-      AZURE_DATABRICKS_ACCOUNT_CLIENT_SECRET:
-        description: |
-          Azure Databricks Accounts Client Secret with Admin Permissions
+      DATABRICKS_TOKEN:
+        description: Databricks account authentication token
         required: true
       AZURE_DATABRICKS_ACCOUNT_SCIM_TOKEN:
         description: |
@@ -118,7 +107,7 @@ env:
     ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
     ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
     TF_VAR_DATABRICKS_ADMINISTRATOR: "${{ inputs.DATABRICKS_ADMINISTRATOR }}"
-    TF_VAR_DATABRICKS_CLI_PROFILE: "${{ inputs.DATABRICKS_PROFILE }}"
+    DATABRICKS_TOKEN: "${{ secrets.DATABRICKS_TOKEN }}"
     TF_VAR_DATABRICKS_ACCOUNT_ID: "${{ secrets.AZURE_DATABRICKS_ACCOUNT_ID }}"
     TF_VAR_DATABRICKS_ACCOUNT_SCIM_TOKEN: "${{ secrets.AZURE_DATABRICKS_ACCOUNT_SCIM_TOKEN }}"
 
@@ -156,20 +145,6 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_wrapper: false
     
-    # Databricks offers Workload Identity Federation from Databricks Accounts
-    # to Databricks Workspaces via SCIM connectors to cloud providers. However,
-    # no Identity Federation/Open ID Connect exists for Databricks Accounts
-    # authorization at this time. Therefore, providing client secrets via GA
-    # Secrets is necessary until advances are made with Databricks Accounts WIF/OIDC.
-    - name: Databricks Accounts Configuration
-      run: |
-        echo "[${{ inputs.DATABRICKS_PROFILE }}]
-        host          = https://accounts.azuredatabricks.net
-        account_id    = ${{ secrets.AZURE_DATABRICKS_ACCOUNT_ID }}
-        client_id     = ${{ secrets.AZURE_DATABRICKS_ACCOUNT_CLIENT_ID }}
-        client_secret = ${{ secrets.AZURE_DATABRICKS_ACCOUNT_CLIENT_SECRET }}
-        jobs-api-version = 2.1" > ~/.databrickscfg
-
     - name: Terraform Init
       run: terraform init
 
