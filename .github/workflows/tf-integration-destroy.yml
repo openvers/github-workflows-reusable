@@ -15,6 +15,9 @@ on:
           Databricks Accounts Administrator user account (not for machine access)
         required: true
         type: string
+      destroy_timeout_minutes:
+        type: number
+        default: '30'
       mask:
         description: |
           Flag to mask environment variables
@@ -179,7 +182,7 @@ jobs:
     - name: Terraform Destroy
       uses: nick-fields/retry@v3
       with:
-        timeout_minutes: 5
+        timeout_minutes: ${{ inputs.destroy_timeout_minutes }}
         max_attempts: 3
         retry_on: error
         command: 'terraform -chdir=${{ inputs.working_directory }} destroy --auto-approve'
