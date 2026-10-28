@@ -42,6 +42,9 @@ on:
         default: 3
     
     secrets:
+      backend_config:
+        description: Optional Terraform backend configuration in HCL format
+        required: false
       env_variables:
         description: |
           Passing ENV Variables from parent level workflow to reusable workflow
@@ -134,7 +137,19 @@ jobs:
         terraform_wrapper: false
 
     - name: Terraform Init
-      run: terraform init
+      shell: bash
+      env:
+        TF_BACKEND_CONFIG: ${{ secrets.backend_config }}
+      run: |
+        if [ -n "$TF_BACKEND_CONFIG" ]; then
+          umask 077
+          backend_file=$(mktemp "$RUNNER_TEMP/terraform-backend.XXXXXX")
+          trap 'rm -f -- "$backend_file"' EXIT
+          printf '%s' "$TF_BACKEND_CONFIG" > "$backend_file"
+          terraform init -input=false -backend-config="$backend_file"
+        else
+          terraform init
+        fi
 
     - name: Terraform plan
       run: |
