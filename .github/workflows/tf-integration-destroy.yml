@@ -30,6 +30,9 @@ on:
         default: "./test"
 
     secrets:
+      backend_config:
+        description: 'Optional Terraform backend configuration in HCL format'
+        required: false
       env_variables:
         description: |
           Passing ENV Variables from parent level workflow to reusable workflow
@@ -125,10 +128,23 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-    
+        terraform_wrapper: false
+      
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init
+      shell: bash
+      env:
+        TF_BACKEND_CONFIG: ${{ secrets.backend_config }}
+      run: |
+        if [ -n "$TF_BACKEND_CONFIG" ]; then
+          umask 077
+          backend_file=$(mktemp "$RUNNER_TEMP/terraform-backend.XXXXXX")
+          trap 'rm -f "$backend_file"' EXIT
+          printf '%s' "$TF_BACKEND_CONFIG" > "$backend_file"
+          terraform init -input=false -backend-config="$backend_file"
+        else
+          terraform init
+        fi
     
     # Terraform archive_file fails on destroy when source files can't be found
     # These data.archive_file.this resources need to be removed from state

@@ -26,16 +26,16 @@ Pass the secret alongside the existing authentication secrets:
 ```yaml
 jobs:
   plan:
-    uses: openvers/github-workflows-reusable/.github/workflows/tf-dispatch-plan.yml@AzureV1
+    uses: gondola/github-workflows-reusable/.github/workflows/tf-dispatch-plan.yml@AzureV1
     with:
       ACT_MODE: false
-      working_directory: ./test/databricks
+      working_directory: ./test
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-      backend_config: ${{ secrets.TF_BACKEND_DATABRICKS }}
+      backend_config: ${{ secrets.TF_BACKEND }}
 ```
 
 For the service-account fixture, pass `backend_config: ${{ secrets.TF_BACKEND_SERVICE_ACCOUNT }}` to `tf-reusable-auth.yml` with that fixture's working directory. Supply the appropriate backend secret to each plan, apply, or destroy invocation as well. Authentication remains separate through the existing `TF_API_TOKEN` mechanism; do not put API tokens in the backend configuration.
