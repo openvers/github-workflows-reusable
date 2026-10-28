@@ -2,6 +2,71 @@
 
 Reusable Workflows to reduce repetitive code blocks consistent across multiple repositories within the sim-parables org.
 
+## External Terraform backend configuration
+
+`tf-dispatch-plan.yml`, `tf-reusable-auth.yml`, `tf-dispatch-apply.yml`, and
+`tf-dispatch-destroy.yml` accept the optional `backend_config` workflow secret.
+Use it with partial backend configuration committed in your Terraform fixture:
+
+```hcl
+terraform {
+  backend "remote" {}
+}
+```
+
+Store the complete backend configuration as HCL in a GitHub Actions secret, just
+as you would in a local, gitignored `.tfbackend` file. Do not include the outer
+`terraform` or `backend` block:
+
+```hcl
+organization = "your-organization"
+workspaces {
+  name = "your-databricks-workspace"
+}
+```
+
+Add the mapping to your existing caller (other required inputs and authentication
+secrets must still be supplied):
+
+```yaml
+jobs:
+  plan:
+    uses: openvers/github-workflows-reusable/.github/workflows/tf-dispatch-plan.yml@AzureDatabricksV1
+    with:
+      ACT_MODE: false
+      DATABRICKS_ADMINISTRATOR: ${{ vars.DATABRICKS_ADMINISTRATOR }}
+      working_directory: ./test/databricks
+    secrets:
+      # Keep all existing Azure and Databricks authentication secret mappings.
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      backend_config: ${{ secrets.TF_BACKEND_DATABRICKS }}
+```
+
+For the service-account fixture, map
+`backend_config: ${{ secrets.TF_BACKEND_SERVICE_ACCOUNT }}` instead. Supply the
+appropriate mapping to apply, destroy, and auth workflow calls as well. Backend
+selection remains separate from authentication through the existing
+`TF_API_TOKEN` mechanism; do not put credentials in backend configuration.
+
+When nonempty, the secret is written without printing its contents to a temporary
+file under `$RUNNER_TEMP` with owner-only permissions. Initialization uses
+`terraform init -input=false -backend-config="$backend_file"`, and the file is
+removed when initialization finishes, including on failure. The file is not
+uploaded as an artifact. Omitting the secret (or supplying an empty value)
+preserves the existing `terraform init` behavior. No automatic state migration or
+forced reconfiguration is performed.
+
+`-backend-config` applies **only to `terraform init`**, not to `plan`, `apply`, or
+`destroy`; those commands use the initialized backend. Terraform can retain
+backend settings in `.terraform` metadata and saved plans, so do not print or
+upload those files if they contain sensitive configuration. Keep local
+`.tfbackend` files gitignored.
+
+If your caller wraps these workflows in another reusable workflow, declare the
+optional `backend_config` secret there and explicitly forward
+`backend_config: ${{ secrets.backend_config }}` in the nested call's `secrets`
+mapping at every boundary.
+
 ## Local workflow execution with Nektos act
 
 Run these reusable Terraform workflows locally with [Nektos act](https://nektosact.com/) by setting `ACT_MODE=true` in the caller workflow inputs. With `ACT_MODE=false`, Azure authentication continues to use GitHub OIDC.
